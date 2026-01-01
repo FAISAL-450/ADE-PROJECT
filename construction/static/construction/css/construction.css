@@ -1,0 +1,9 @@
+/* Construction CSS */
+.sidebar.construction {
+  background-color: #2e3b55;
+  border-left: 4px solid #d17b00;
+}
+
+.sidebar-header {
+  color: #ffd700;
+}
