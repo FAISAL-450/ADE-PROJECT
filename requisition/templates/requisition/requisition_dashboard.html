@@ -15,6 +15,55 @@
     {% endfor %}
   {% endif %}
 
+<!-- 🖨️ Print Preview Button -->
+{% if not is_admin %}
+  <div class="print-controls">
+    <button type="button" class="print-button" onclick="printPreview()">🖨️ Print Preview</button>
+  </div>
+{% endif %}
+
+  <!-- Wrap all printable content -->
+  <div id="printable-section">
+
+  <!-- 🧾 Purchase Requisition Heading -->
+<div class="form-card">
+  <h2 class="section-title-PR">
+    Purchase Requisition
+  </h2>
+</div>
+
+    <!-- 🧾 Basic Information Section -->
+  {% if not is_admin %}
+  <div class="form-card">
+    <h2 class="section-title" onclick="toggleForm()">
+      <!-- Left-side smart info icon -->
+      <i class="fas fa-info-circle title-icon"></i>
+      BASIC INFORMATION 
+      <!-- Right-side toggle icon -->
+      <span id="toggle-icon"><i class="fa fa-chevron-down"></i></span>
+    </h2>
+
+    <div id="formContent" style="display:none;">
+      <div class="form-row">
+        <label for="project-name">Project Name:</label>
+        <input type="text" id="project-name" placeholder="Enter project name">
+      </div>
+      <div class="form-row">
+        <label for="pr-date">PR Date:</label>
+        <input type="text" id="pr-date" placeholder="Enter pr date">
+      </div>
+      <div class="form-row">
+        <label for="pr-no">PR No:</label>
+        <input type="text" id="pr-no" placeholder="Enter PR number">
+      </div>
+      <div class="form-row">
+        <label for="delivery-date">Delivery Date:</label>
+        <input type="text" id="delivery-date" placeholder="Enter delivery date">
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
 <!-- 📝 Requisition Form Section -->
 {% if not readonly %}
 <section class="form-section">
@@ -134,7 +183,15 @@
       {% endfor %}
     </tbody>
   </table>
+{% if not is_admin %}
+  <div class="table-footer">
+    Prepared By | Checked By | Approved By
+  </div>
+  {% endif %}
 </section>
+
+</div> <!-- end printable-section -->
+</div> <!-- end dashboard-wrapper -->
 
 <!-- 📋 Pagination -->
 {% if requisitions.paginator.num_pages > 1 %}
@@ -153,6 +210,32 @@
 </section>
 
 </div>
+
+<!-- 🔧 Toggle Script-(Basic Information) -->
+<script>
+  function toggleForm() {
+    const form = document.getElementById('formContent');
+    const icon = document.getElementById('toggle-icon').querySelector('i');
+
+    if (form.style.display === 'none') {
+      form.style.display = 'block';
+      icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+    } else {
+      form.style.display = 'none';
+      icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Auto-expand if mode is "edit"
+    if ("{{ mode }}" === "edit") {
+      const form = document.getElementById('formContent');
+      const icon = document.getElementById('toggle-icon').querySelector('i');
+      form.style.display = 'block';
+      icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+    }
+  });
+</script>
 
 <!-- ✅ Toggle + Auto-fill Script -->
 <script>
@@ -206,6 +289,75 @@
       });
     }
   });
+</script>
+
+<!-- 🧠 Print Preview Script -->
+<script>
+function printPreview() {
+  const section = document.querySelector('#printable-section');
+  if (!section) {
+    alert("Printable section not found!");
+    return;
+  }
+
+  // Sync input values
+  section.querySelectorAll('input').forEach(input => {
+    input.setAttribute('value', input.value);
+  });
+
+  // Clone section so we can safely modify
+  const clone = section.cloneNode(true);
+
+  // Find table and remove Status (col 9) & Actions (col 10)
+  clone.querySelectorAll('table').forEach(table => {
+    table.querySelectorAll('tr').forEach(row => {
+      const cells = row.querySelectorAll('th, td');
+      if (cells[9]) cells[9].remove();   // Remove Status
+      if (cells[10]) cells[10].remove(); // Remove Actions
+    });
+  });
+
+  const content = clone.outerHTML;
+  const printWindow = window.open('', 'print-preview', 'width=900,height=700');
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print Preview</title>
+        <link rel="stylesheet" href="{% static 'css/print.css' %}">
+        <style>
+          .form-section, .filter-section { display: none !important; }
+          #formContent { display: block !important; }
+          .action-btn, .print-controls { display: none !important; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #333; padding: 6px; }
+
+          /* 🎯 Hide headings in Print Preview */
+          .form-card .section-title { display: none !important; }
+          .table-section .table-header { display: none !important; }
+
+          /* 📌 Push footer down from table */
+          .table-footer {
+            margin-top: 200px;   /* space below table */
+            text-align: left;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        ${content}
+
+        <script>
+          window.onload = function() { setTimeout(() => window.print(), 200); };
+        <\/script>
+      </body>
+    </html>
+  `;
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.focus();
+}
 </script>
 
 <!-- 🎨 Custom CSS -->
@@ -620,6 +772,97 @@ td {
   animation: moveLeft 0.5s ease forwards;
 }
 
+/* Section title-(Basic Information) */
+.section-title {
+  font-size: 18px;
+  margin-top: 4px;
+  margin-bottom: -6px;
+  margin-left: -13px;
+  color: #333;
+  padding-left: 8px;
+}
+
+/* Whole Form Section-(Basic Information) */
+.form-section {
+  padding: 25px 20px;  /* 30px top/bottom, 20px left/right */
+}
+
+/* Card container-(Basic Information) */
+.form-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  width: 98%;
+  margin-bottom: 14px;
+  margin-left: -13px;
+  max-height: 350px;  /* cap height */
+  overflow-y: auto;   /* scroll if content exceeds */
+
+}
+
+/* Row layout-(Basic Information) */
+.form-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* Label styling-(Basic Information) */
+.form-row label {
+  flex: 0 0 180px;
+  font-weight: 600;
+  color: #555;
+}
+
+/* Input styling-(Basic Information) */
+.form-row input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+
+}
+
+/* Smart hover/focus effect-(Basic Information) */
+.form-row input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+  outline: none;
+}
+
+/* Entry-Box styling-(Basic Information) */
+.form-card .form-row input {
+  height: 30px !important;
+  box-sizing: border-box;
+
+}
+
+/* Print Preview Button Styling */
+.print-controls {
+  margin-top: 15px;     /* space above the button */
+  margin-left: -13px;    /* space from the left */
+  margin-bottom: 15px;  /* space below the button */
+}
+
+.print-button {
+  background-color: #0078d4;   /* blue background */
+  color: #fff;                 /* white text */
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Trebuchet MS', sans-serif;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.print-button:hover {
+  background-color: #005fa3;   /* darker blue on hover */
+}
+
 /* Keyframes: move left then return */
 @keyframes moveLeft {
   0%   { left: 0; }
@@ -634,3 +877,4 @@ td {
 </style>
 
 {% endblock %}
+
