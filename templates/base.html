@@ -1,0 +1,175 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ERP System{% endblock %}</title>
+
+  <!-- Global styles -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Department-specific stylesheet -->
+  {% if request.user.is_authenticated %}
+    {% with request.user.profile.department|default:"default"|lower as dept %}
+      <link rel="stylesheet" href="{% static 'css/'|add:dept|add:'/'|add:dept|add:'.css' %}">
+    {% endwith %}
+  {% else %}
+    <link rel="stylesheet" href="{% static 'css/default.css' %}">
+  {% endif %}
+
+    <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background-color: #f4f6f8;
+      display: flex;
+    }
+
+    /* Whole-Sidebar-(Sidebar-Header+Sidebar-Menu) */
+    .sidebar {
+      width: 220px;   /* Whole Sidebar-Width */
+      background-color: #3c4b64;
+      color: white;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      transition: width 0.3s ease;
+      
+    }
+
+    /* Sidebar-Header */
+    .sidebar-header {
+      padding: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: left;
+      background-color: #3c4b64;   /* Color-Same as-Sidebar-Background Color */
+      margin-top:25px      /* Sidebar-Header-Up & Down */
+
+    }
+
+    /* Sidebar-Menu-(Bellow-Header) */
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      margin-top:-10px    /* Sidebar-Menu-(Bellow-Header-Up & Down) */
+
+    }
+
+    .sidebar-menu li {
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+
+    .sidebar-menu a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-menu a:hover {
+      background-color: #3c4b64;      /* Color-Same as-Sidebar-Background Color */
+      border-radius: 4px;
+    }
+
+    .dropdown-menu {
+      list-style: none;
+      padding-left: 20px;    /* Drop-down-Move-Left/Right */
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .dropdown-menu li {
+      padding: 8px 0;
+    }
+
+    .main-content {
+      margin-left: 240px;
+      padding: 30px;
+      flex-grow: 1;
+    }
+
+    .toggle-icon {
+      margin-left: auto;
+    }
+
+    .active > .dropdown-menu {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+{% if request.user.is_authenticated %}
+  <div class="sidebar">
+    <div class="sidebar-header">ERP System</div>
+    <ul class="sidebar-menu">
+      {% with request.user.email as email %}
+
+        <!-- 🏠 Always show Home -->
+        <li class="nav-item">
+          <a href="{% url 'home' %}">
+            <span><i class="fas fa-home"></i> Home</span>
+          </a>
+        </li>
+
+        {% if email == 'jasim@dzignscapeprofessionals.onmicrosoft.com' %}
+          <!-- 👷 Jasim : Construction -->
+          <li class="dropdown">
+            <a class="dropdown-toggle" href="#" role="button" aria-expanded="false">
+              <span><i class="fas fa-hard-hat"></i> Construction</span>
+              <i class="fa fa-chevron-down toggle-icon"></i>
+            </a>
+            <ul class="dropdown-menu">
+             <li><a href="{% url 'project_dashboard' %}?department=construction">Project Detailed</a></li>
+             <li><a href="{% url 'resource_dashboard' %}?department=construction">Resource</a></li>
+            <li><a href="{% url 'requisition_dashboard' %}?department=construction">Purchase Requisition</a></li>
+            
+            </ul>
+          </li>
+        {% endif %}
+
+        {% if email == 'admin@dzignscapeprofessionals.onmicrosoft.com' %}
+          <!-- 🛡️ Admin: Full Access -->
+          <!-- Construction -->
+          <li class="dropdown">
+            <a class="dropdown-toggle" href="#" role="button" aria-expanded="false">
+              <span><i class="fas fa-hard-hat"></i> Construction</span>
+              <i class="fa fa-chevron-down toggle-icon"></i>
+            </a>
+            <ul class="dropdown-menu">
+            <li><a href="{% url 'project_dashboard' %}?department=construction">Project Detailed</a></li>
+            <li><a href="{% url 'resource_dashboard' %}?department=construction">Resource</a></li>
+            <li><a href="{% url 'requisition_dashboard' %}?department=construction">Purchase Requisition</a></li>
+
+            </ul>
+          </li>
+        {% endif %}
+
+      {% endwith %}
+    </ul>
+  </div>
+{% endif %}
+
+  <div class="main-content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <script>
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const parent = toggle.parentElement;
+        parent.classList.toggle('active');
+      });
+    });
+  </script>
+
+</body>
+</html>
