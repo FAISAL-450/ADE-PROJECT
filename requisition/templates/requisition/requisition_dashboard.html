@@ -211,28 +211,42 @@
 
 </div>
 
-<!-- 🔧 Toggle Script-(Basic Information) -->
+<!-- 🔧 Toggle Script-(Basic Information)-->
 <script>
   function toggleForm() {
     const form = document.getElementById('formContent');
-    const icon = document.getElementById('toggle-icon').querySelector('i');
+    const btn = document.getElementById('toggle-btn');
 
-    if (form.style.display === 'none') {
+    if (form.style.display === 'none' || form.style.display === '') {
+      // Show form
       form.style.display = 'block';
-      icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+      // Switch button to blue
+      btn.classList.remove('btn-red');
+      btn.classList.add('btn-blue');
     } else {
+      // Hide form
       form.style.display = 'none';
-      icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+      // Switch button back to red
+      btn.classList.remove('btn-blue');
+      btn.classList.add('btn-red');
     }
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    // Auto-expand if mode is "edit"
-    if ("{{ mode }}" === "edit") {
-      const form = document.getElementById('formContent');
-      const icon = document.getElementById('toggle-icon').querySelector('i');
+    const mode = "{{ mode }}";
+    const form = document.getElementById('formContent');
+    const btn = document.getElementById('toggle-btn');
+
+    if (mode === "edit") {
+      // Auto-expand in edit mode
       form.style.display = 'block';
-      icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+      btn.classList.remove('btn-red');
+      btn.classList.add('btn-blue');
+    } else {
+      // Default collapsed
+      form.style.display = 'none';
+      btn.classList.remove('btn-blue');
+      btn.classList.add('btn-red');
     }
   });
 </script>
